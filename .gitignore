@@ -1,0 +1,28 @@
+# 환경 변수 (민감 정보)
+.env
+.env.local
+.env.*.local
+
+# 웹앱 배포 URL (개인 배포 주소)
+webapp.url.txt
+학급운영.txt
+
+# Google Apps Script / clasp
+.clasp.json
+.claspignore
+
+# Google OAuth / 서비스 계정
+credentials.json
+token.json
+*.credentials.json
+
+# OS / 에디터
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# 로그
+*.log

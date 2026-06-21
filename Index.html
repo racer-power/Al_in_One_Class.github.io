@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <base target="_top">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Gaegu:wght@300;400;700&display=swap" rel="stylesheet">
+  <?!= include('Styles'); ?>
+</head>
+<body>
+
+  <!-- 로딩 오버레이 -->
+  <div id="loadingOverlay" class="loading-overlay hidden">
+    <div class="loading-box">
+      <div class="spinner"></div>
+      <p id="loadingText">정보를 불러오는 중...</p>
+    </div>
+  </div>
+
+  <!-- 토스트 알림 -->
+  <div id="toast" class="toast hidden"></div>
+
+  <!-- 1. 학번 입력 화면 -->
+  <section id="loginScreen" class="screen active">
+    <div class="card login-card fade-in">
+      <div class="logo-area">
+        <span class="logo-icon">📚</span>
+        <h1>올인원 학급 운영</h1>
+        <p class="subtitle">학번을 입력하고 시작해요</p>
+      </div>
+      <div class="input-group">
+        <label for="studentIdInput">학번</label>
+        <input
+          type="text"
+          id="studentIdInput"
+          placeholder="학번을 입력하세요"
+          autocomplete="off"
+          inputmode="numeric"
+        >
+      </div>
+      <button id="loginBtn" class="btn btn-primary" type="button">
+        확인 ✨
+      </button>
+      <p id="loginError" class="error-msg hidden"></p>
+    </div>
+  </section>
+
+  <!-- 2. 메인 화면 -->
+  <section id="mainScreen" class="screen">
+    <div class="main-container fade-in">
+
+      <!-- 환영 헤더 -->
+      <header class="welcome-header">
+        <h2 id="welcomeMessage">환영해요!</h2>
+        <span id="studentBadge" class="student-badge"></span>
+      </header>
+
+      <!-- 공지사항 -->
+      <div class="card notice-card">
+        <div class="card-title">
+          <span>📢</span> 공지사항
+        </div>
+        <p id="noticeText" class="notice-text"></p>
+      </div>
+
+      <!-- 달력 -->
+      <div class="card calendar-card">
+        <div class="calendar-header">
+          <button id="prevMonthBtn" class="btn-icon" type="button" aria-label="이전 달">◀</button>
+          <h3 id="calendarTitle"></h3>
+          <button id="nextMonthBtn" class="btn-icon" type="button" aria-label="다음 달">▶</button>
+        </div>
+        <div class="calendar-weekdays">
+          <span>일</span><span>월</span><span>화</span><span>수</span>
+          <span>목</span><span>금</span><span>토</span>
+        </div>
+        <div id="calendarGrid" class="calendar-grid"></div>
+        <p class="calendar-legend">출석한 날 💖</p>
+      </div>
+
+      <!-- 출결 액션 -->
+      <div class="card action-card">
+        <div id="actionArea">
+          <!-- 동적으로 버튼/메시지 표시 -->
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- 3. 퇴실 팝업 (배움일지 + 서명) -->
+  <div id="checkoutModal" class="modal hidden">
+    <div class="modal-backdrop"></div>
+    <div class="modal-content slide-up">
+      <div class="modal-header">
+        <h3>📝 오늘의 배움 기록</h3>
+        <button id="closeModalBtn" class="btn-close" type="button" aria-label="닫기">✕</button>
+      </div>
+      <div class="modal-body">
+        <label for="learningLogInput">오늘 배운 내용을 적어 주세요</label>
+        <textarea
+          id="learningLogInput"
+          rows="4"
+          placeholder="오늘 수업에서 배운 내용, 느낀 점 등을 자유롭게 적어 보세요..."
+        ></textarea>
+
+        <label>서명</label>
+        <div class="signature-wrapper">
+          <canvas id="signatureCanvas" width="400" height="180"></canvas>
+          <button id="clearSignatureBtn" class="btn btn-secondary btn-sm" type="button">
+            서명 지우기
+          </button>
+        </div>
+        <p id="checkoutError" class="error-msg hidden"></p>
+      </div>
+      <div class="modal-footer">
+        <button id="submitCheckoutBtn" class="btn btn-primary" type="button">
+          제출하기 🎉
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <?!= include('Client'); ?>
+</body>
+</html>

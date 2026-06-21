@@ -1,0 +1,4 @@
+# 웹앱 배포 URL 예시
+# 실제 URL은 webapp.url.txt 파일에 저장하세요 (Git에 올라가지 않음)
+#
+# https://script.google.com/macros/s/YOUR_DEPLOYMENT_ID/exec

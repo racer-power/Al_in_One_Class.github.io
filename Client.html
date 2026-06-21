@@ -1,0 +1,392 @@
+<script>
+(function () {
+  'use strict';
+
+  // ─── 상태 ───────────────────────────────────────────────
+  var state = {
+    studentId: '',
+    studentName: '',
+    todayStatus: 'before_checkin',
+    attendanceDates: [],
+    calendarYear: new Date().getFullYear(),
+    calendarMonth: new Date().getMonth() + 1
+  };
+
+  // ─── DOM 요소 ───────────────────────────────────────────
+  var els = {
+    loadingOverlay: document.getElementById('loadingOverlay'),
+    loadingText: document.getElementById('loadingText'),
+    toast: document.getElementById('toast'),
+    loginScreen: document.getElementById('loginScreen'),
+    mainScreen: document.getElementById('mainScreen'),
+    studentIdInput: document.getElementById('studentIdInput'),
+    loginBtn: document.getElementById('loginBtn'),
+    loginError: document.getElementById('loginError'),
+    welcomeMessage: document.getElementById('welcomeMessage'),
+    studentBadge: document.getElementById('studentBadge'),
+    noticeText: document.getElementById('noticeText'),
+    calendarTitle: document.getElementById('calendarTitle'),
+    calendarGrid: document.getElementById('calendarGrid'),
+    prevMonthBtn: document.getElementById('prevMonthBtn'),
+    nextMonthBtn: document.getElementById('nextMonthBtn'),
+    actionArea: document.getElementById('actionArea'),
+    checkoutModal: document.getElementById('checkoutModal'),
+    closeModalBtn: document.getElementById('closeModalBtn'),
+    learningLogInput: document.getElementById('learningLogInput'),
+    signatureCanvas: document.getElementById('signatureCanvas'),
+    clearSignatureBtn: document.getElementById('clearSignatureBtn'),
+    submitCheckoutBtn: document.getElementById('submitCheckoutBtn'),
+    checkoutError: document.getElementById('checkoutError')
+  };
+
+  // ─── 서명 캔버스 ────────────────────────────────────────
+  var sigCtx = els.signatureCanvas.getContext('2d');
+  var isDrawing = false;
+  var hasSignature = false;
+
+  function initSignatureCanvas() {
+    var canvas = els.signatureCanvas;
+    sigCtx.strokeStyle = '#4a4a6a';
+    sigCtx.lineWidth = 2.5;
+    sigCtx.lineCap = 'round';
+    sigCtx.lineJoin = 'round';
+    resizeCanvas();
+  }
+
+  function resizeCanvas() {
+    var canvas = els.signatureCanvas;
+    var rect = canvas.getBoundingClientRect();
+    var dpr = window.devicePixelRatio || 1;
+    canvas.width = rect.width * dpr;
+    canvas.height = rect.height * dpr;
+    sigCtx.scale(dpr, dpr);
+    sigCtx.strokeStyle = '#4a4a6a';
+    sigCtx.lineWidth = 2.5;
+    sigCtx.lineCap = 'round';
+    sigCtx.lineJoin = 'round';
+  }
+
+  function getCanvasPos(e) {
+    var rect = els.signatureCanvas.getBoundingClientRect();
+    var clientX, clientY;
+    if (e.touches && e.touches.length > 0) {
+      clientX = e.touches[0].clientX;
+      clientY = e.touches[0].clientY;
+    } else {
+      clientX = e.clientX;
+      clientY = e.clientY;
+    }
+    return { x: clientX - rect.left, y: clientY - rect.top };
+  }
+
+  function startDraw(e) {
+    e.preventDefault();
+    isDrawing = true;
+    hasSignature = true;
+    var pos = getCanvasPos(e);
+    sigCtx.beginPath();
+    sigCtx.moveTo(pos.x, pos.y);
+  }
+
+  function draw(e) {
+    if (!isDrawing) return;
+    e.preventDefault();
+    var pos = getCanvasPos(e);
+    sigCtx.lineTo(pos.x, pos.y);
+    sigCtx.stroke();
+  }
+
+  function endDraw() {
+    isDrawing = false;
+  }
+
+  function clearSignature() {
+    var canvas = els.signatureCanvas;
+    sigCtx.clearRect(0, 0, canvas.width, canvas.height);
+    hasSignature = false;
+  }
+
+  els.signatureCanvas.addEventListener('mousedown', startDraw);
+  els.signatureCanvas.addEventListener('mousemove', draw);
+  els.signatureCanvas.addEventListener('mouseup', endDraw);
+  els.signatureCanvas.addEventListener('mouseleave', endDraw);
+  els.signatureCanvas.addEventListener('touchstart', startDraw, { passive: false });
+  els.signatureCanvas.addEventListener('touchmove', draw, { passive: false });
+  els.signatureCanvas.addEventListener('touchend', endDraw);
+
+  // ─── UI 헬퍼 ────────────────────────────────────────────
+  function showLoading(text) {
+    els.loadingText.textContent = text || '로딩 중...';
+    els.loadingOverlay.classList.remove('hidden');
+  }
+
+  function hideLoading() {
+    els.loadingOverlay.classList.add('hidden');
+  }
+
+  function showToast(msg, duration) {
+    duration = duration || 2500;
+    els.toast.textContent = msg;
+    els.toast.classList.remove('hidden');
+    requestAnimationFrame(function () {
+      els.toast.classList.add('show');
+    });
+    setTimeout(function () {
+      els.toast.classList.remove('show');
+      setTimeout(function () { els.toast.classList.add('hidden'); }, 300);
+    }, duration);
+  }
+
+  function switchScreen(from, to) {
+    from.classList.remove('active');
+    setTimeout(function () {
+      to.classList.add('active');
+    }, 150);
+  }
+
+  function showError(el, msg) {
+    el.textContent = msg;
+    el.classList.remove('hidden');
+  }
+
+  function hideError(el) {
+    el.textContent = '';
+    el.classList.add('hidden');
+  }
+
+  // ─── 달력 렌더링 ────────────────────────────────────────
+  function renderCalendar() {
+    var year = state.calendarYear;
+    var month = state.calendarMonth;
+    els.calendarTitle.textContent = year + '년 ' + month + '월';
+
+    var firstDay = new Date(year, month - 1, 1).getDay();
+    var daysInMonth = new Date(year, month, 0).getDate();
+    var todayStr = formatDate(new Date());
+    var html = '';
+
+    for (var i = 0; i < firstDay; i++) {
+      html += '<div class="cal-day empty"></div>';
+    }
+
+    for (var d = 1; d <= daysInMonth; d++) {
+      var dateStr = year + '-' + pad(month) + '-' + pad(d);
+      var classes = ['cal-day'];
+      var stamp = '';
+
+      if (dateStr === todayStr) classes.push('today');
+      if (state.attendanceDates.indexOf(dateStr) !== -1) {
+        classes.push('attended');
+        stamp = '<span class="stamp">💖</span>';
+      }
+
+      html += '<div class="' + classes.join(' ') + '">' +
+        '<span>' + d + '</span>' + stamp + '</div>';
+    }
+
+    els.calendarGrid.innerHTML = html;
+  }
+
+  function pad(n) {
+    return n < 10 ? '0' + n : '' + n;
+  }
+
+  function formatDate(date) {
+    return date.getFullYear() + '-' + pad(date.getMonth() + 1) + '-' + pad(date.getDate());
+  }
+
+  // ─── 출결 버튼 영역 ─────────────────────────────────────
+  function renderActionArea() {
+    var html = '';
+
+    switch (state.todayStatus) {
+      case 'before_checkin':
+        html = '<button id="checkInBtn" class="btn btn-primary" type="button">출석하기 ✅</button>';
+        break;
+      case 'before_checkout':
+        html = '<button id="checkOutBtn" class="btn btn-checkout" type="button">퇴실하기 📖</button>';
+        break;
+      case 'completed':
+        html = '<p class="complete-msg"><span>🎉</span><br>오늘 출결을 모두 완료했어요!</p>';
+        break;
+    }
+
+    els.actionArea.innerHTML = html;
+
+    var checkInBtn = document.getElementById('checkInBtn');
+    var checkOutBtn = document.getElementById('checkOutBtn');
+    if (checkInBtn) checkInBtn.addEventListener('click', handleCheckIn);
+    if (checkOutBtn) checkOutBtn.addEventListener('click', openCheckoutModal);
+  }
+
+  // ─── 메인 화면 갱신 ─────────────────────────────────────
+  function renderMain(data) {
+    state.studentId = data.student.id;
+    state.studentName = data.student.name;
+    state.todayStatus = data.todayStatus;
+    state.attendanceDates = data.attendanceDates || [];
+    state.calendarYear = data.year;
+    state.calendarMonth = data.month;
+
+    els.welcomeMessage.textContent = data.student.name + '학생, 환영해요!';
+    els.studentBadge.textContent = '학번 ' + data.student.id;
+    els.noticeText.textContent = data.notice;
+
+    renderCalendar();
+    renderActionArea();
+  }
+
+  // ─── API 호출 ───────────────────────────────────────────
+  function handleLogin() {
+    var id = els.studentIdInput.value.trim();
+    hideError(els.loginError);
+
+    if (!id) {
+      showError(els.loginError, '학번을 입력해 주세요.');
+      return;
+    }
+
+    showLoading('정보를 불러오는 중...');
+
+    google.script.run
+      .withSuccessHandler(function (result) {
+        hideLoading();
+        if (!result.success) {
+          showError(els.loginError, result.message);
+          return;
+        }
+        renderMain(result);
+        switchScreen(els.loginScreen, els.mainScreen);
+      })
+      .withFailureHandler(function (err) {
+        hideLoading();
+        showError(els.loginError, '연결 오류: ' + err.message);
+      })
+      .loginStudent(id);
+  }
+
+  function handleCheckIn() {
+    showLoading('출석 기록 중...');
+
+    google.script.run
+      .withSuccessHandler(function (result) {
+        hideLoading();
+        if (!result.success) {
+          showToast(result.message);
+          return;
+        }
+        state.todayStatus = result.todayStatus;
+        state.attendanceDates = result.attendanceDates;
+        renderCalendar();
+        renderActionArea();
+        showToast(result.message);
+      })
+      .withFailureHandler(function (err) {
+        hideLoading();
+        showToast('출석 처리 오류: ' + err.message);
+      })
+      .markCheckIn(state.studentId);
+  }
+
+  function openCheckoutModal() {
+    els.learningLogInput.value = '';
+    clearSignature();
+    hideError(els.checkoutError);
+    els.checkoutModal.classList.remove('hidden');
+    setTimeout(resizeCanvas, 100);
+  }
+
+  function closeCheckoutModal() {
+    els.checkoutModal.classList.add('hidden');
+  }
+
+  function handleCheckoutSubmit() {
+    hideError(els.checkoutError);
+
+    var log = els.learningLogInput.value.trim();
+    if (!log) {
+      showError(els.checkoutError, '오늘의 배움 기록을 입력해 주세요.');
+      return;
+    }
+    if (!hasSignature) {
+      showError(els.checkoutError, '서명을 작성해 주세요.');
+      return;
+    }
+
+    var signatureData = els.signatureCanvas.toDataURL('image/png');
+    closeCheckoutModal();
+    showLoading('기록을 저장하는 중...');
+
+    google.script.run
+      .withSuccessHandler(function (result) {
+        hideLoading();
+        if (!result.success) {
+          showToast(result.message);
+          openCheckoutModal();
+          return;
+        }
+        state.todayStatus = result.todayStatus;
+        state.attendanceDates = result.attendanceDates;
+        renderCalendar();
+        renderActionArea();
+        showToast(result.message);
+      })
+      .withFailureHandler(function (err) {
+        hideLoading();
+        showToast('저장 오류: ' + err.message);
+        openCheckoutModal();
+      })
+      .submitCheckOut(state.studentId, log, signatureData);
+  }
+
+  function changeMonth(delta) {
+    var m = state.calendarMonth + delta;
+    var y = state.calendarYear;
+
+    if (m < 1) { m = 12; y--; }
+    if (m > 12) { m = 1; y++; }
+
+    showLoading('달력 불러오는 중...');
+
+    google.script.run
+      .withSuccessHandler(function (result) {
+        hideLoading();
+        if (!result.success) {
+          showToast(result.message);
+          return;
+        }
+        state.calendarYear = result.year;
+        state.calendarMonth = result.month;
+        state.attendanceDates = result.attendanceDates;
+        renderCalendar();
+      })
+      .withFailureHandler(function (err) {
+        hideLoading();
+        showToast('달력 오류: ' + err.message);
+      })
+      .getCalendarData(state.studentId, y, m);
+  }
+
+  // ─── 이벤트 바인딩 ──────────────────────────────────────
+  els.loginBtn.addEventListener('click', handleLogin);
+  els.studentIdInput.addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') handleLogin();
+  });
+
+  els.prevMonthBtn.addEventListener('click', function () { changeMonth(-1); });
+  els.nextMonthBtn.addEventListener('click', function () { changeMonth(1); });
+
+  els.closeModalBtn.addEventListener('click', closeCheckoutModal);
+  els.checkoutModal.querySelector('.modal-backdrop').addEventListener('click', closeCheckoutModal);
+  els.clearSignatureBtn.addEventListener('click', clearSignature);
+  els.submitCheckoutBtn.addEventListener('click', handleCheckoutSubmit);
+
+  window.addEventListener('resize', function () {
+    if (!els.checkoutModal.classList.contains('hidden')) {
+      resizeCanvas();
+    }
+  });
+
+  initSignatureCanvas();
+})();
+</script>
