@@ -79,6 +79,32 @@ git push -u origin main
 
 > `학급운영.txt`, `.env`, `.clasp.json` 등 민감 파일은 `.gitignore`로 제외됩니다.
 
+## GitHub Pages 배포
+
+### 404가 나오는 이유
+
+1. **주소가 틀렸을 수 있습니다**  
+   저장소가 `racer-power/Al_in_One_Class.github.io` 이므로 올바른 주소는:
+
+   **https://racer-power.github.io/Al_in_One_Class.github.io/**
+
+   `al_in_one_class.github.io` 는 **다른 GitHub 계정** 전용 주소라 404가 납니다.
+
+2. **GitHub Pages가 아직 켜지지 않았을 수 있습니다** (아래 설정 필요)
+
+### 설정 방법
+
+1. GitHub 저장소 → **Settings → Pages**
+2. **Build and deployment → Source** 를 **GitHub Actions** 로 선택
+2. **Settings → Secrets and variables → Actions** → New repository secret
+   - Name: `WEBAPP_DEPLOYMENT_URL`
+   - Value: Google Apps Script 웹앱 URL
+3. `main` 브랜치에 push 하면 Actions가 자동 배포합니다.
+4. **Actions** 탭에서 `Deploy GitHub Pages` 워크플로가 성공했는지 확인
+
+> 실제 앱(출석·공지·배움일지)은 **Google Apps Script URL**에서만 동작합니다.  
+> GitHub Pages는 GAS 웹앱으로 보내는 **리다이렉트 페이지**입니다.
+
 ## Vercel 배포 (리다이렉트용)
 
 이 앱의 **백엔드는 Google Apps Script**에서만 동작합니다.  

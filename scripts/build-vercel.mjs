@@ -85,14 +85,13 @@ const html = `<!DOCTYPE html>
       webappUrl
         ? `<p>잠시 후 앱으로 이동합니다...</p>
            <p><a class="btn" href="${webappUrl}">앱 열기 ✨</a></p>`
-        : `<p class="warn">Vercel 환경 변수가 설정되지 않았습니다.</p>
+        : `<p class="warn">웹앱 URL이 설정되지 않았습니다.</p>
            <div class="note">
              이 프로젝트는 <strong>Google Apps Script</strong>에서 실행되는 웹앱입니다.
-             Vercel에서는 앱 본체가 아니라 <strong>접속 안내·리다이렉트 페이지</strong>만 제공합니다.
+             GitHub Pages / Vercel에서는 앱 본체가 아니라 <strong>접속 안내·리다이렉트 페이지</strong>만 제공합니다.
              <br><br>
-             Vercel 대시보드 → Settings → Environment Variables 에
-             <code>WEBAPP_DEPLOYMENT_URL</code> 을 Google Apps Script 웹앱 URL로 등록한 뒤
-             <strong>Redeploy</strong> 하세요.
+             GitHub: 저장소 → Settings → Secrets → <code>WEBAPP_DEPLOYMENT_URL</code> 등록 후 Actions 재실행<br>
+             Vercel: Settings → Environment Variables → <code>WEBAPP_DEPLOYMENT_URL</code> 등록 후 Redeploy
            </div>
            <p>Google Apps Script에서 배포한 URL로 직접 접속해 주세요.</p>`
     }

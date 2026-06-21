@@ -40,12 +40,19 @@
   [공지사항] 시트
     A1, A2, A3... 에 공지 작성 (가장 아래 줄이 학생에게 표시)
 
-■ 5단계: 웹앱 배포
+■ 5단계: 웹앱 배포 (Google Apps Script — 실제 앱)
   1. 배포 → 새 배포
   2. 유형: 웹 앱
   3. 실행 주체: 나
   4. 액세스: 모든 사용자 (또는 조직 내 사용자)
   5. 배포 → URL 복사 → 학생들에게 공유
+
+■ 5-1단계: GitHub Pages (선택 — 리다이렉트용)
+  ※ GitHub Pages만으로는 앱이 실행되지 않습니다 (google.script API 필요)
+  1. GitHub → Settings → Pages → Source: GitHub Actions
+  2. Secrets → WEBAPP_DEPLOYMENT_URL = GAS 웹앱 URL 등록
+  3. 접속 주소: https://racer-power.github.io/Al_in_One_Class.github.io/
+     (al_in_one_class.github.io 는 사용 불가 — 계정명이 다름)
 
 ■ 주요 기능 요약
   ✓ 학번 입력 → 학생 확인 → 환영 메시지
