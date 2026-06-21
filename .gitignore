@@ -26,3 +26,6 @@ Thumbs.db
 
 # 로그
 *.log
+
+# Vercel 빌드 결과 (배포 시 자동 생성)
+public/

@@ -1,0 +1,7 @@
+{
+  "name": "all-in-one-class-management",
+  "private": true,
+  "scripts": {
+    "build": "node scripts/build-vercel.mjs"
+  }
+}

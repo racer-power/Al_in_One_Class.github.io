@@ -79,6 +79,19 @@ git push -u origin main
 
 > `학급운영.txt`, `.env`, `.clasp.json` 등 민감 파일은 `.gitignore`로 제외됩니다.
 
+## Vercel 배포 (리다이렉트용)
+
+이 앱의 **백엔드는 Google Apps Script**에서만 동작합니다.  
+`Client.html`의 `google.script.run` API는 Vercel에서 실행되지 않으므로, Vercel에는 **GAS 웹앱으로 보내는 안내 페이지**만 배포합니다.
+
+### Vercel에서 404 / 빈 화면이 나올 때
+
+1. Vercel → **Settings → Environment Variables**
+2. `WEBAPP_DEPLOYMENT_URL` = Google Apps Script 웹앱 URL (예: `https://script.google.com/macros/s/.../exec`)
+3. **Deployments → Redeploy**
+
+학생들에게는 **Google Apps Script 배포 URL**을 직접 공유하는 것이 가장 확실합니다.
+
 ## 라이선스
 
 MIT
